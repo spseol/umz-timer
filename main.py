@@ -107,7 +107,7 @@ class TimerFrame(Frame):
         self.elapsed_time_lbl.configure(
             text=format_delta(EXAM_SECTIONS[self.actual_section][1] - self.section_remaining)
         )
-        self.master.after(100, self.update_timer)
+        self.master.after(1000, self.update_timer)
 
     def _set_next_section(self):
         self.actual_section += 1
@@ -118,7 +118,7 @@ class TimerFrame(Frame):
 
 if __name__ == '__main__':
     master = Tk()
-    master.title = 'ÚMZ ANJ - časovač'
+    master.wm_title('ÚMZ ANJ - časování')
     timer_frame = TimerFrame(master)
 
     timer_frame.pack(fill=BOTH)
