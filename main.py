@@ -9,7 +9,8 @@ TIME_FONT = ('Helvetica', 84)
 
 
 class TimerFrame(Frame):
-    start_btn = current_time_lbl = copyright_lbl = remaining_time_frame = remaining_time_lbl = section_lbl = None
+    start_btn = current_time_lbl = copyright_lbl = remaining_time_frame = remaining_time_lbl = None
+    section_lbl = elapsed_time_lbl = None
     inverting_parts = []
 
     def __init__(self, master=None, cnf={}, **kw):
@@ -65,10 +66,10 @@ class TimerFrame(Frame):
 
 
 if __name__ == '__main__':
-    root = Tk()
-    timer_frame = TimerFrame(root)
+    master = Tk()
+    timer_frame = TimerFrame(master)
 
     timer_frame.pack(fill=BOTH)
 
-    root.attributes('-zoomed', True)
-    root.mainloop()
+    master.attributes('-zoomed', True)
+    master.mainloop()
