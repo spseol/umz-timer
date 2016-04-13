@@ -17,13 +17,16 @@ EXAM_SECTIONS = (
 )
 LIGHT = 'gainsboro'
 DARK = 'black'
-format_delta = lambda delta: '{}:{:02}'.format(delta.seconds // 60, delta.seconds % 60)
+
+
+def format_delta(delta):
+    return '{}:{:02}'.format(delta.seconds // 60, delta.seconds % 60)
 
 
 class TimerFrame(Frame):
     # tkinter widgets
     start_btn = current_time_lbl = copyright_lbl = remaining_time_frame = None
-    section_title_lbl = elapsed_time_lbl = remaining_time_lbl = None
+    section_title_lbl = elapsed_time_lbl = remaining_time_lbl = reset_btn = None
     inverting_parts = []
     ui_light = True
 
@@ -52,7 +55,8 @@ class TimerFrame(Frame):
         self.start_btn = Button(self, command=self.start_timer, text='START!', font=self.LABELS_FONT)
         self.start_btn.grid(row=2, column=1, sticky=S)
 
-        self.reset_btn = Button(self, command=self.reset_timer,
+        self.reset_btn = Button(
+            self, command=self.reset_timer,
             text='VYNULOVAT!', font=self.COPYRIGHT_FONT
         )
         self.reset_btn.grid(row=2, column=2, sticky=S + E)
@@ -72,7 +76,8 @@ class TimerFrame(Frame):
         self.remaining_time_frame = Frame(self)
         self.remaining_time_frame.grid(column=1, row=1)
 
-        self.remaining_time_lbl = Label(self.remaining_time_frame,
+        self.remaining_time_lbl = Label(
+            self.remaining_time_frame,
             text=format_delta(EXAM_SECTIONS[0][1]), font=self.TIME_FONT
         )
         self.remaining_time_lbl.pack()
@@ -152,7 +157,7 @@ class TimerFrame(Frame):
 
 if __name__ == '__main__':
     master = Tk()
-    master.wm_title('ÚMZ ANJ - časování')
+    master.wm_title('ÚMZ ANJ - časovač')
     timer_frame = TimerFrame(master)
 
     timer_frame.pack(fill=BOTH)
