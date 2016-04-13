@@ -49,6 +49,9 @@ class TimerFrame(Frame):
         self._update_current_time()
 
     def setup_ui(self):
+        """
+        Basic setup GUI labels and buttons.
+        """
         self.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
         self.grid_columnconfigure(1, weight=1)
@@ -97,10 +100,16 @@ class TimerFrame(Frame):
         self.refresh_section()
 
     def _update_current_time(self):
+        """
+        Update the timer of current time and set the timing for next second.
+        """
         self.current_time_lbl.configure(text=time.strftime('%H:%M:%S'))
         self.master.after(1000, self._update_current_time)
 
     def _invert_ui(self):
+        """
+        Invert colors in the GUI including font colors and backgrounds.
+        """
         self.ui_colors.reverse()
         bg, fg = self.ui_colors
         self.master.configure(bg=bg)
@@ -110,10 +119,16 @@ class TimerFrame(Frame):
             part['foreground'] = fg
 
     def start_timer(self):
+        """
+        Start the main timer and timer updating.
+        """
         self.timer_control_btn.configure(text='STOP!', command=self.stop_timer)
         self.timer_id = self.master.after(1000, self.update_timer)
 
     def update_timer(self):
+        """
+        Update the timer time and check the next section.
+        """
         self.section_remaining -= timedelta(seconds=1)
 
         if self.section_remaining.total_seconds() == 0:
@@ -130,25 +145,41 @@ class TimerFrame(Frame):
             self.timer_id = self.master.after(1000, self.update_timer)
 
     def stop_timer(self):
+        """
+        Stop the main timer.
+        """
         if self.timer_id:
             self.master.after_cancel(self.timer_id)
         self.timer_control_btn.configure(text='START!', command=self.start_timer)
 
     def reset_timer(self):
+        """
+        Ask for resetting the main timer and may reset the main timer.
+        :return:
+        """
         if askyesno('Jste si jisti?', 'Opravdu chcete zastavit a vynulovat čítání?', default=NO):
             self.stop_timer()
             self.actual_section = 0
 
     @property
     def actual_section(self):
+        """
+        Return actual section index.
+        """
         return self._actual_section
 
     @actual_section.setter
     def actual_section(self, new):
+        """
+        Set the new section index and refresh section state.
+        """
         self._actual_section = new
         self.refresh_section()
 
     def refresh_section(self):
+        """
+        Refresh labels and main timer state.
+        """
         section_title, section_length = EXAM_SECTIONS[self.actual_section]
         self.section_title_lbl.configure(text=section_title)
         self.section_remaining = copy(section_length)
@@ -158,6 +189,9 @@ class TimerFrame(Frame):
         )
 
     def bind_keyboard(self):
+        """
+        Bind shortcuts to the keyboard.
+        """
         self.master.bind('<space>', lambda *args, **kwargs: self.timer_control_btn.invoke())
         self.master.bind('<Delete>', lambda *args, **kwargs: self.reset_timer_btn.invoke())
 
