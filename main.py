@@ -29,8 +29,9 @@ class TimerFrame(Frame):
     ui_light = True
 
     # timer logic
-    actual_section = -1
-    section_remaining = timedelta()
+    actual_section = 0
+    section_remaining = EXAM_SECTIONS[actual_section][1]
+    timer_id = None
 
     def __init__(self, master=None, cnf={}, **kw):
         super().__init__(master, cnf, **kw)
@@ -44,7 +45,6 @@ class TimerFrame(Frame):
         self._update_current_time()
 
     def setup_ui(self):
-        self.configure(bg='gainsboro')
         self.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
         self.grid_columnconfigure(1, weight=1)
@@ -52,6 +52,11 @@ class TimerFrame(Frame):
 
         self.start_btn = Button(self, command=self.start_timer, text='START!', font=self.LABELS_FONT)
         self.start_btn.grid(row=2, column=1, sticky=S)
+
+        self.reset_btn = Button(self, command=self.start_timer,
+        	text='VYNULOVAT!', font=self.COPYRIGHT_FONT
+        )
+        self.reset_btn.grid(row=2, column=2, sticky=S + E)
 
         self.current_time_lbl = Label(self, font=self.LABELS_FONT)
         self.current_time_lbl.grid(row=2, column=0, sticky=W + S)
@@ -68,7 +73,9 @@ class TimerFrame(Frame):
         self.remaining_time_frame = Frame(self)
         self.remaining_time_frame.grid(column=1, row=1)
 
-        self.remaining_time_lbl = Label(self.remaining_time_frame, text='0:00', font=self.TIME_FONT)
+        self.remaining_time_lbl = Label(self.remaining_time_frame,
+        	text=format_delta(EXAM_SECTIONS[0][1]), font=self.TIME_FONT
+        )
         self.remaining_time_lbl.pack()
 
         self.inverting_parts.extend((
@@ -77,7 +84,8 @@ class TimerFrame(Frame):
             self.section_title_lbl,
             self.remaining_time_lbl,
             self.start_btn,
-            self.elapsed_time_lbl
+            self.elapsed_time_lbl,
+            self.reset_btn
         ))
 
     def _update_current_time(self):
@@ -86,14 +94,16 @@ class TimerFrame(Frame):
 
     def _invert_ui(self):
         self.ui_light = not self.ui_light
-        self.master.configure(bg=(LIGHT, DARK)[self.ui_light])
-        self.configure(bg=(LIGHT, DARK)[self.ui_light])
+        bg, fg = (LIGHT, DARK)[self.ui_light], (LIGHT, DARK)[not self.ui_light]
+        self.master.configure(bg=bg)
+        self.configure(bg=bg)
         for part in self.inverting_parts:
-            part['background'], part['foreground'] = part['foreground'], part['background']
+            part['background'] = bg
+            part['foreground'] = fg
 
     def start_timer(self):
-        self._set_next_section()
-        self.master.after(1000, self.update_timer)
+        self.start_btn.configure(text='STOP!', command=self.stop_timer)
+        self.timer_id = self.master.after(1000, self.update_timer)
 
     def update_timer(self):
         self.section_remaining -= timedelta(seconds=1)
@@ -107,13 +117,20 @@ class TimerFrame(Frame):
         self.elapsed_time_lbl.configure(
             text=format_delta(EXAM_SECTIONS[self.actual_section][1] - self.section_remaining)
         )
-        self.master.after(1000, self.update_timer)
+        self.timer_id =self.master.after(1000, self.update_timer)
 
     def _set_next_section(self):
         self.actual_section += 1
         section_title, section_length = EXAM_SECTIONS[self.actual_section]
         self.section_title_lbl.configure(text=section_title)
         self.section_remaining = copy(section_length)
+
+    def stop_timer(self):
+    	self.master.after_cancel(self.timer_id)
+    	self.start_btn.configure(text='START!', command=self.start_timer)
+
+    def reset(self):
+    	pass
 
 
 if __name__ == '__main__':
