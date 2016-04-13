@@ -13,12 +13,10 @@ EXAM_SECTIONS = (
     ('Part II. C', timedelta(minutes=1.5)),
     ('Part III.', timedelta(minutes=5)),
     ('Part IV.', timedelta(minutes=3)),
-    ('Part V.', timedelta(minutes=3)),
     ('The End', timedelta()),
 )
 LIGHT = 'gainsboro'
 DARK = 'black'
-
 format_delta = lambda delta: '{}:{:02}'.format(delta.seconds // 60, delta.seconds % 60)
 
 
@@ -113,6 +111,7 @@ class TimerFrame(Frame):
 
         if self.section_remaining.total_seconds() == 0:
             self.actual_section += 1
+            self._invert_ui()
         elif self.section_remaining.total_seconds() <= 5:
             self._invert_ui()
 
@@ -121,7 +120,7 @@ class TimerFrame(Frame):
             text=format_delta(EXAM_SECTIONS[self.actual_section][1] - self.section_remaining)
         )
         if self.section_remaining.total_seconds() > 0:
-            self.timer_id = self.master.after(100, self.update_timer)
+            self.timer_id = self.master.after(1000, self.update_timer)
 
     def stop_timer(self):
         if self.timer_id:
@@ -129,10 +128,8 @@ class TimerFrame(Frame):
         self.start_btn.configure(text='START!', command=self.start_timer)
 
     def reset_timer(self):
-        if self.timer_id:
-            self.master.after_cancel(self.timer_id)
+        self.stop_timer()
         self.actual_section = 0
-        self.start_btn.configure(text='START!', command=self.start_timer)
 
     @property
     def actual_section(self):
@@ -161,5 +158,4 @@ if __name__ == '__main__':
     timer_frame.pack(fill=BOTH)
 
     master.minsize(900, 350)
-    master.attributes('-zoomed', True)
     master.mainloop()
