@@ -4,6 +4,7 @@ from datetime import timedelta
 from tkinter import Frame, Tk, Button, Label
 from tkinter.constants import BOTH, W, N, E, S
 from tkinter.font import Font, BOLD
+from tkinter.messagebox import askyesno, NO
 
 EXAM_SECTIONS = (
     ('Introduction', timedelta(minutes=.5)),
@@ -25,10 +26,10 @@ def format_delta(delta):
 
 class TimerFrame(Frame):
     # tkinter widgets
-    start_btn = current_time_lbl = copyright_lbl = remaining_time_frame = None
-    section_title_lbl = elapsed_time_lbl = remaining_time_lbl = reset_btn = None
+    timer_control_btn = current_time_lbl = copyright_lbl = remaining_time_frame = None
+    section_title_lbl = elapsed_time_lbl = remaining_time_lbl = reset_timer_btn = None
     inverting_parts = []
-    ui_light = True
+    ui_colors = [LIGHT, DARK]
 
     # timer logic
     _actual_section = 0
@@ -44,6 +45,7 @@ class TimerFrame(Frame):
         self.TIME_FONT = Font(master, family='Helvetica', size=130, weight=BOLD)
 
         self.setup_ui()
+        self.bind_keyboard()
         self._update_current_time()
 
     def setup_ui(self):
@@ -52,19 +54,19 @@ class TimerFrame(Frame):
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(1, weight=1)
 
-        self.start_btn = Button(self, command=self.start_timer, text='START!', font=self.LABELS_FONT)
-        self.start_btn.grid(row=2, column=1, sticky=S)
+        self.timer_control_btn = Button(self, command=self.start_timer, text='START!', font=self.LABELS_FONT)
+        self.timer_control_btn.grid(row=2, column=1, sticky=S)
 
-        self.reset_btn = Button(
+        self.reset_timer_btn = Button(
             self, command=self.reset_timer,
             text='VYNULOVAT!', font=self.COPYRIGHT_FONT
         )
-        self.reset_btn.grid(row=2, column=2, sticky=S + E)
+        self.reset_timer_btn.grid(row=2, column=2, sticky=S + E)
 
         self.current_time_lbl = Label(self, font=self.LABELS_FONT)
         self.current_time_lbl.grid(row=2, column=0, sticky=W + S)
 
-        self.copyright_lbl = Label(self, text='© Josef Kolář, 2016', font=self.COPYRIGHT_FONT)
+        self.copyright_lbl = Label(self, text="Josef Kolář © 2016", font=self.COPYRIGHT_FONT)
         self.copyright_lbl.grid(column=2, row=0, sticky=N + E)
 
         self.section_title_lbl = Label(self, font=self.SECTION_FONT)
@@ -87,9 +89,9 @@ class TimerFrame(Frame):
             self.copyright_lbl,
             self.section_title_lbl,
             self.remaining_time_lbl,
-            self.start_btn,
+            self.timer_control_btn,
             self.elapsed_time_lbl,
-            self.reset_btn
+            self.reset_timer_btn
         ))
 
         self.refresh_section()
@@ -99,8 +101,8 @@ class TimerFrame(Frame):
         self.master.after(1000, self._update_current_time)
 
     def _invert_ui(self):
-        self.ui_light = not self.ui_light
-        bg, fg = (LIGHT, DARK)[self.ui_light], (LIGHT, DARK)[not self.ui_light]
+        self.ui_colors.reverse()
+        bg, fg = self.ui_colors
         self.master.configure(bg=bg)
         self.configure(bg=bg)
         for part in self.inverting_parts:
@@ -108,7 +110,7 @@ class TimerFrame(Frame):
             part['foreground'] = fg
 
     def start_timer(self):
-        self.start_btn.configure(text='STOP!', command=self.stop_timer)
+        self.timer_control_btn.configure(text='STOP!', command=self.stop_timer)
         self.timer_id = self.master.after(1000, self.update_timer)
 
     def update_timer(self):
@@ -117,7 +119,7 @@ class TimerFrame(Frame):
         if self.section_remaining.total_seconds() == 0:
             self.actual_section += 1
             self._invert_ui()
-        elif self.section_remaining.total_seconds() <= 5:
+        elif self.section_remaining.total_seconds() < 5:
             self._invert_ui()
 
         self.remaining_time_lbl.configure(text=format_delta(self.section_remaining))
@@ -130,11 +132,12 @@ class TimerFrame(Frame):
     def stop_timer(self):
         if self.timer_id:
             self.master.after_cancel(self.timer_id)
-        self.start_btn.configure(text='START!', command=self.start_timer)
+        self.timer_control_btn.configure(text='START!', command=self.start_timer)
 
     def reset_timer(self):
-        self.stop_timer()
-        self.actual_section = 0
+        if askyesno('Jste si jisti?', 'Opravdu chcete zastavit a vynulovat čítání?', default=NO):
+            self.stop_timer()
+            self.actual_section = 0
 
     @property
     def actual_section(self):
@@ -153,6 +156,10 @@ class TimerFrame(Frame):
         self.elapsed_time_lbl.configure(
             text=format_delta(EXAM_SECTIONS[self.actual_section][1] - self.section_remaining)
         )
+
+    def bind_keyboard(self):
+        self.master.bind('<space>', lambda *args, **kwargs: self.timer_control_btn.invoke())
+        self.master.bind('<Delete>', lambda *args, **kwargs: self.reset_timer_btn.invoke())
 
 
 if __name__ == '__main__':
